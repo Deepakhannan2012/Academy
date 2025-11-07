@@ -7,16 +7,14 @@
 // ------------------------------------------------------------------------------------------------
 using static System.Console;
 
-string invalidMsg = "Please enter a valid input: ";
-
 // Get a Yes/No from the user with a single key input
 EChoice GetChoice () {
    while (true)
       switch (ReadKey (true).Key) {
          case ConsoleKey.Y: return EChoice.Yes;
          case ConsoleKey.N: return EChoice.No;
-         case ConsoleKey.Escape: return EChoice.Undo;
-         default: Write (invalidMsg); break;
+         case ConsoleKey.Escape: return EChoice.Previous_question;
+         default: Write (ValidInput ("Y,N or EsC")); break;
       }
 }
 
@@ -26,7 +24,7 @@ EMode GetMode () {
       switch (ReadKey (true).Key) {
          case ConsoleKey.C: return EMode.Computer_Guess;
          case ConsoleKey.U: return EMode.User_Guess;
-         default: Write (invalidMsg); break;
+         default: Write (ValidInput ("C or U")); break;
       }
 }
 
@@ -36,7 +34,7 @@ EMethod GetMethod () {
       switch (ReadKey (true).Key) {
          case ConsoleKey.M: return EMethod.MSB;
          case ConsoleKey.L: return EMethod.LSB;
-         default: Write (invalidMsg); break;
+         default: Write (ValidInput ("M or L")); break;
       }
 }
 
@@ -46,7 +44,7 @@ var mode = GetMode ();
 WriteLine (mode);
 if (mode is EMode.User_Guess) UserGuess ();
 else {
-   Write ("Choose the guessing method, (M)SB or (L)SB: ");
+   Write ("Assume a number in the range 0 - 127.\nChoose the guessing method, (M)SB or (L)SB: ");
    var method = GetMethod ();
    WriteLine (method);
    int finalGuess = (method is EMethod.MSB) ? GuessMSB () : GuessLSB ();
@@ -59,7 +57,8 @@ void UserGuess () {
    Write ("Guess the number between 1 and 100: ");
    int num = new Random ().Next (1, 101);
    while (true) {
-      while (!int.TryParse (ReadLine (), out guess) || guess is < 0 or > 100) Write (invalidMsg);
+      while (!int.TryParse (ReadLine (), out guess) || guess is < 0 or > 100)
+         Write (ValidInput ("a positive number within the given range"));
       if (guess == num) break;
       Write ($"Your guess is too {((guess > num) ? "high" : "low")}. Try again: ");
    }
@@ -72,22 +71,19 @@ int GuessMSB () {
    (int, int, int, int) prev = (upper, lower, ans, i);
    while (i < 7) {
       int mid = (upper + lower) / 2;
-      Write ($"Is the number less than {mid}? (Y)es, (N)o, (Esc)Undo: ");
+      Write ($"Is the number less than {mid}? (Y)es, (N)o, (Esc)Previous question: ");
       var choice = GetChoice ();
       WriteLine (choice);
-      if (choice is EChoice.Undo) {
-         (upper, lower, ans, i) = prev;
-         continue;
-      }
-      prev = (upper, lower, ans, i);
-      if (choice is EChoice.Yes) upper = mid;
-      else {
-         ans |= 1 << (6 - i);
-         lower = mid;
+      switch (choice) {
+         case EChoice.Previous_question: (upper, lower, ans, i) = prev; continue;
+         case EChoice.Yes: SavePrev (); upper = mid; break;
+         default: SavePrev (); ans |= 1 << (6 - i); lower = mid; break;
       }
       i++;
    }
    return ans;
+
+   void SavePrev () => prev = (upper, lower, ans, i);
 }
 
 // Makes the computer guess the user's number from the LSB to MSB
@@ -95,22 +91,26 @@ int GuessLSB () {
    (int ans, int i) = (0, 0);
    (int, int) prev = (ans, i);
    while (i < 7) {
-      int divisor = 1 << (i + 1);
-      int remainder = ans % divisor;
-      Write ($"When the number is divided by {divisor}, is the remainder {remainder}? (Y)es, (N)o, (Esc)Undo: ");
+      int div = 1 << (i + 1);
+      int mod = ans % div;
+      Write ($"When the number is divided by {div}, is the remainder {mod}? (Y)es, (N)o, (Esc)Previous question: ");
       var choice = GetChoice ();
       WriteLine (choice);
-      if (choice is EChoice.Undo) {
-         (ans, i) = prev;
-         continue;
+      switch (choice) {
+         case EChoice.Previous_question: (ans, i) = prev; continue;
+         case EChoice.No: SavePrev (); ans |= 1 << i; break;
+         default: SavePrev (); break;
       }
-      prev = (ans, i);
-      if (choice is EChoice.No) ans |= 1 << i;
       i++;
    }
    return ans;
+
+   void SavePrev () => prev = (ans, i);
 }
 
-enum EChoice { Yes, No, Undo }
+// Returns an invalid message with the acceptable inputs
+string ValidInput (string s) => $"Please enter only {s}: ";
+
+enum EChoice { Yes, No, Previous_question }
 enum EMode { Computer_Guess, User_Guess }
 enum EMethod { MSB, LSB }
