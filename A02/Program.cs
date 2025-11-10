@@ -46,7 +46,7 @@ if (mode is EMode.User_Guess) UserGuess ();
 else {
    WriteLine ("Assume a number in the range 0 - 127.");
    while (true) {
-      Console.Write ("Choose the guessing method, (M)SB or (L)SB: ");
+      Write ("Choose the guessing method, (M)SB or (L)SB: ");
       var method = GetMethod ();
       WriteLine (method);
       int finalGuess = (method is EMethod.MSB) ? GuessMSB () : GuessLSB ();
@@ -90,8 +90,7 @@ int GuessLSB () {
    int ans = 0;
    for (int i = 0; i < 7; i++) {
       int div = 1 << (i + 1);
-      int mod = ans % div;
-      Write ($"When the number is divided by {div}, is the remainder {mod}? (Y)es, (N)o, (Esc)Previous menu: ");
+      Write ($"When the number is divided by {div}, is the remainder {ans % div}? (Y)es, (N)o, (Esc)Previous menu: ");
       var choice = GetChoice ();
       WriteLine (choice);
       switch (choice) {
@@ -101,7 +100,6 @@ int GuessLSB () {
       }
    }
    return ans;
-
 }
 
 // Returns an invalid message with the acceptable inputs
