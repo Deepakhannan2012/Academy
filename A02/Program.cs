@@ -13,8 +13,7 @@ EChoice GetChoice () {
       switch (ReadKey (true).Key) {
          case ConsoleKey.Y: return EChoice.Yes;
          case ConsoleKey.N: return EChoice.No;
-         case ConsoleKey.Escape: return EChoice.Previous_menu;
-         default: Write ($"\n{ValidInput ("Y,N or EsC")}"); break;
+         default: Write ($"\n{ErrorMsg ("Y or N")}"); break;
       }
 }
 
@@ -24,7 +23,7 @@ EMode GetMode () {
       switch (ReadKey (true).Key) {
          case ConsoleKey.C: return EMode.Computer_Guess;
          case ConsoleKey.U: return EMode.User_Guess;
-         default: Write ($"\n{ValidInput ("C or U")}"); break;
+         default: Write ($"\n{ErrorMsg ("C or U")}"); break;
       }
 }
 
@@ -34,7 +33,7 @@ EMethod GetMethod () {
       switch (ReadKey (true).Key) {
          case ConsoleKey.M: return EMethod.MSB;
          case ConsoleKey.L: return EMethod.LSB;
-         default: Write ($"\n{ValidInput ("M or L")}"); break;
+         default: Write ($"\n{ErrorMsg ("M or L")}"); break;
       }
 }
 
@@ -50,7 +49,6 @@ else {
       var method = GetMethod ();
       WriteLine (method);
       int finalGuess = (method is EMethod.MSB) ? GuessMSB () : GuessLSB ();
-      if (finalGuess is -1) continue;
       WriteLine ($"Your number is {finalGuess}"); break;
    }
 }
@@ -61,7 +59,7 @@ void UserGuess () {
    Write ("Guess the number between 1 and 100: ");
    while (true) {
       while (!int.TryParse (ReadLine (), out guess) || guess is < 0 or > 100)
-         Write ($"\n{ValidInput ("a positive number within the given range")}");
+         Write ($"\n{ErrorMsg ("a positive number within the given range")}");
       if (guess == num) break;
       Write ($"Your guess is too {((guess > num) ? "high" : "low")}. Try again: ");
    }
@@ -73,11 +71,10 @@ int GuessMSB () {
    (int upper, int lower, int ans) = (128, 0, 0);
    for (int i = 0; i < 7; i++) {
       int mid = (upper + lower) / 2;
-      Write ($"Is the number less than {mid}? (Y)es, (N)o, (Esc)Previous menu: ");
+      Write ($"Is the number less than {mid}? (Y)es or (N)o: ");
       var choice = GetChoice ();
       WriteLine (choice);
       switch (choice) {
-         case EChoice.Previous_menu: return -1;
          case EChoice.Yes: upper = mid; break;
          default: ans |= 1 << (6 - i); lower = mid; break;
       }
@@ -90,11 +87,10 @@ int GuessLSB () {
    int ans = 0;
    for (int i = 0; i < 7; i++) {
       int div = 1 << (i + 1);
-      Write ($"When the number is divided by {div}, is the remainder {ans % div}? (Y)es, (N)o, (Esc)Previous menu: ");
+      Write ($"When the number is divided by {div}, is the remainder {ans % div}? (Y)es or (N)o: ");
       var choice = GetChoice ();
       WriteLine (choice);
       switch (choice) {
-         case EChoice.Previous_menu: return -1;
          case EChoice.No: ans |= 1 << i; break;
          default: break;
       }
@@ -103,8 +99,8 @@ int GuessLSB () {
 }
 
 // Returns an invalid message with the acceptable inputs
-string ValidInput (string s) => $"Please enter only {s}: ";
+string ErrorMsg (string s) => $"Please enter only {s}: ";
 
-enum EChoice { Yes, No, Previous_menu }
+enum EChoice { Yes, No }
 enum EMode { Computer_Guess, User_Guess }
 enum EMethod { MSB, LSB }
