@@ -8,14 +8,14 @@
 using static System.Console;
 
 // Main program
-string[] words = File.ReadAllLines ("C:/Work/Others/words.txt");
+string[] words = File.ReadAllLines ("words.txt");
 (int count, int totalScore) = (0, 0);
 Write ("Enter the seven letters of Spelling Bee: ");
 GetInput (out char[] letters);
-List<(string, int)> validWords = [.. words.Where (x => x.Length is > 3 && x.All (c => letters.Contains (c)) && x.Contains (letters[0]))
+List<(string, int)> validWords = [.. words.Where (x => x.Length is > 3 && x.Contains (letters[0]) && x.All (c => letters.Contains (c)))
                                           .Select(word => (word,Score(word)))
                                           .OrderByDescending(x => x.Item2)];
-ForegroundColor = ConsoleColor.Green;
+if (validWords.Count is not 0) ForegroundColor = ConsoleColor.Green;
 foreach (var word in validWords) {
    if (word.Item1 == validWords[count].Item1) ResetColor ();
    WriteLine ($"{word.Item2,3}. {word.Item1}");
