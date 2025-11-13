@@ -10,7 +10,7 @@ using static System.Console;
 // Main program
 string[] words = File.ReadAllLines ("words.txt");
 (int count, int totalScore) = (0, 0);
-Write ("Enter the seven letters of Spelling Bee: ");
+Write ("Enter the seven letters of Spelling Bee, starting with the mandatory letter: ");
 GetInput (out char[] letters);
 List<(string, int)> validWords = [.. words.Where (x => x.Length is > 3 && x.Contains (letters[0]) && x.All (c => letters.Contains (c)))
                                           .Select(word => (word,Score(word)))
