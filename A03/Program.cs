@@ -8,18 +8,20 @@
 using static System.Console;
 
 // Main program
-string[] words = File.ReadAllLines ("words.txt");
 Write ("Enter the seven letters of Spelling Bee, starting with the mandatory letter: ");
 GetInput (out char[] letters);
-List<(string, bool, int)> validWords = [.. words.Where (x => x.Length is > 3
-                                                             && x.Contains (letters[0])
-                                                             && x.All (c => letters.Contains (c)))
-                                          .Select(word => {
-                                             bool pangram = letters.All (c => word.Contains (c));
-                                             return (word, pangram, Score (word, pangram));})
-                                          .OrderByDescending(x => x.Item3)];
+List<string> validWords = [.. File.ReadAllLines ("words.txt")
+                                               .Where (x => x.Length is > 3
+                                                            && x.Contains (letters[0])
+                                                            && x.All (c => letters.Contains (c)))];
+List<(string word, bool pangram, int score)> results = [];
+foreach (var word in validWords) {
+   (int score, bool pangram) = Score (word);
+   results.Add ((word, pangram, score));
+}
+results = [.. results.OrderByDescending (x => x.score)];
 int totalScore = 0;
-foreach (var (word, pangram, score) in validWords) {
+foreach (var (word, pangram, score) in results) {
    if (pangram) ForegroundColor = ConsoleColor.Green;
    WriteLine ($"{score,3}. {word}");
    ResetColor ();
@@ -28,9 +30,10 @@ foreach (var (word, pangram, score) in validWords) {
 WriteLine ($"----\n{totalScore} total");
 
 // Returns the score of each word
-int Score (string word, bool pangram) {
+(int, bool) Score (string word) {
+   bool pangram = IsPangram (word);
    int length = word.Length, score = length is 4 ? 1 : (pangram ? length + 7 : length);
-   return score;
+   return (score, pangram);
 }
 
 // Gets the array of characters from the user input
@@ -43,3 +46,6 @@ void GetInput (out char[] arr) {
       Write ("Invalid Input. Enter only seven letters: ");
    }
 }
+
+// Checks if the input is a pangram
+bool IsPangram (string word) => letters.All (c => word.Contains (c));
