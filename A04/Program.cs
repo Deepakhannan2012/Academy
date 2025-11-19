@@ -14,11 +14,11 @@ class Program {
       var charFreq = File.ReadAllText ("words.txt")
                          .Where (char.IsLetter)
                          .GroupBy (ch => ch)
-                         .ToDictionary (g => g.Key, g => g.Count ())
-                         .OrderByDescending (g => g.Value);
-      foreach (var (ch, count) in charFreq) WriteLine ($"{ch} - {count}");
-      WriteLine ($"The 7 most recurring letters are: " +
-                 $"{string.Join (", ", charFreq.Take (7).Select (x => x.Key))}");
+                         .Select (g => new { Letter = g.Key, Count = g.Count () })
+                         .OrderByDescending (g => g.Count)
+                         .Take(7);
+      WriteLine ($"The 7 most recurring letters are: ");
+      foreach (var pair in charFreq) WriteLine ($"{pair.Letter} - {pair.Count}");
    }
 }
 #endregion
