@@ -6,7 +6,6 @@
 // Program to build of frequency table of letters in a file
 // ------------------------------------------------------------------------------------------------
 using static System.Console;
-
 namespace A04;
 
 #region class Program------------------------------------------------------------------------------
@@ -23,4 +22,3 @@ class Program {
    }
 }
 #endregion
-
