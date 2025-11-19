@@ -9,16 +9,18 @@ using static System.Console;
 
 namespace A04;
 
+#region class Program------------------------------------------------------------------------------
 class Program {
    static void Main () {
-      Dictionary<char, int> charFreq = [];
-      foreach (string word in File.ReadAllLines ("words.txt"))
-         foreach (char ch in word)
-            if (Char.IsLetter (ch))
-               charFreq[ch] = charFreq.TryGetValue (ch, out int count) ? ++count : 1;
-      var sorted = charFreq.OrderByDescending (x => x.Value);
-      foreach (var (ch, count) in sorted) WriteLine ($"{ch} - {count}");
+      var charFreq = File.ReadAllText ("words.txt")
+                         .Where (char.IsLetter)
+                         .GroupBy (ch => ch)
+                         .ToDictionary (g => g.Key, g => g.Count ())
+                         .OrderByDescending (g => g.Value);
+      foreach (var (ch, count) in charFreq) WriteLine ($"{ch} - {count}");
       WriteLine ($"The 7 most recurring letters are: " +
-                 $"{string.Join (", ", sorted.Take (7).Select (x => x.Key))}");
+                 $"{string.Join (", ", charFreq.Take (7).Select (x => x.Key))}");
    }
 }
+#endregion
+
