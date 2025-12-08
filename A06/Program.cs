@@ -8,6 +8,7 @@
 using System.Text;
 using static System.Console;
 
+#region class Program -----------------------------------------------------------------------------
 class Program {
    static void Main () {
       OutputEncoding = new UnicodeEncoding ();
@@ -15,6 +16,7 @@ class Program {
       PrintAllSoln (solutions);
    }
 
+   #region Implementation -------------------------------------------
    // Finds all the unique solutions and stores them in an array
    static void QueenPos (int row) {
       if (row == 8) {
@@ -96,13 +98,18 @@ class Program {
             Write ($"│   ♛   ");
             for (int i = 0; i < 7 - sol[r]; i++) Write ("│       ");
             WriteLine ($"│\n{empLine}");
-            WriteLine (r is 7 ? "└───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┘"
-                              : "├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┤");
+            WriteLine (r is 7
+                       ? "└───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┘"
+                       : "├───────┼───────┼───────┼───────┼───────┼───────┼───────┼───────┤");
          }
       }
    }
+   #endregion
 
+   #region Fields ---------------------------------------------------
    static int[] tempSoln = new int[8];
    static int[][] solutions = new int[12][];
    static int count = 0;
+   #endregion
 }
+#endregion
