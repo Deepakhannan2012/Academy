@@ -70,6 +70,7 @@ class Program {
 
    // Prints all the solutions in a chess board
    static void PrintAllSoln (int[][] sol) {
+      WriteLine ("12 unique solutions for the 8 queens problem:\n");
       for (int i = 0; i < sCount; i++) {
          WriteLine ($"Solution {i + 1}:");
          PrintSoln (sol[i]);
@@ -81,7 +82,7 @@ class Program {
          for (int row = 0; row < MAXROW; row++) {
             for (int col = 0; col < MAXROW; col++) Write ($"│ {((col == sol[row]) ? '♛' : ' ')} ");
             WriteLine ($"│\n{(row is (MAXROW - 1) ? "└───┴───┴───┴───┴───┴───┴───┴───┘\n"
-                                                : "├───┼───┼───┼───┼───┼───┼───┼───┤")}");
+                                                  : "├───┼───┼───┼───┼───┼───┼───┼───┤")}");
          }
       }
    }
