@@ -40,7 +40,7 @@ class Program {
          // Mirrors the given array along the vertical axis
          static int[] Mirror (int[] arr) {
             int[] mirror = new int[MAXROW];
-            for (int r = 0; r < MAXROW; r++) mirror[r] = MAXROW - 1 - arr[r];
+            for (int row = 0; row < MAXROW; row++) mirror[row] = MAXROW - 1 - arr[row];
             return mirror;
          }
 
@@ -78,9 +78,9 @@ class Program {
       // Prints one of the solution in a chess board
       static void PrintSoln (int[] sol) {
          WriteLine ("┌───┬───┬───┬───┬───┬───┬───┬───┐");
-         for (int r = 0; r < MAXROW; r++) {
-            for (int i = 0; i < MAXROW; i++) Write ($"│ {((i == sol[r]) ? '♛' : ' ')} ");
-            WriteLine ($"│\n{(r is (MAXROW - 1) ? "└───┴───┴───┴───┴───┴───┴───┴───┘\n"
+         for (int row = 0; row < MAXROW; row++) {
+            for (int col = 0; col < MAXROW; col++) Write ($"│ {((col == sol[row]) ? '♛' : ' ')} ");
+            WriteLine ($"│\n{(row is (MAXROW - 1) ? "└───┴───┴───┴───┴───┴───┴───┴───┘\n"
                                                 : "├───┼───┼───┼───┼───┼───┼───┼───┤")}");
          }
       }
@@ -107,7 +107,7 @@ class Program {
    #endregion
 
    #region Fields ---------------------------------------------------
-   // Stores the available columns in a solution
+   // Stores the available column positions in a solution
    static List<int> sAvailableColPos = [0, 1, 2, 3, 4, 5, 6, 7];
    // Counts the number of unique solutions found
    static int sCount = 0;
