@@ -11,7 +11,7 @@ using static System.Console;
 class Program {
    static void Main () {
       OutputEncoding = System.Text.Encoding.UTF8;
-      // The first queen is checked at row 0 and column 0
+      // Initially the queen is placed at the 0th row and 0th column
       QueenPos (0);
       PrintAllSoln (sUniqueSolns);
    }
@@ -19,14 +19,16 @@ class Program {
    #region Implementation -------------------------------------------
    // Checks if the found solution already exists
    static bool DuplicateCheck (int[] sol) {
-      var alterSoln = TransformSoln (sol);
-      for (int i = 0; i < sCount; i++)
-         foreach (var soln in alterSoln) if (soln.SequenceEqual (sUniqueSolns[i])) return false;
+      var alterSoln = TransformSolns (sol);
+      for (int i = 0; i < sCount; i++) {
+         var existSoln = sUniqueSolns[i];
+         foreach (var soln in alterSoln) if (soln.SequenceEqual (existSoln)) return false;
+      }
       return true;
 
       // Returns the various transformations of an arr to check duplicates
-      static int[][] TransformSoln (int[] arr) {
-         // Rotated arrays by 90, 180 and 270 degrees
+      static int[][] TransformSolns (int[] arr) {
+         // Rotated arrays by 90°, 180° and 270°
          int[] arr90 = Rotate (arr, 1), arr180 = Rotate (arr, 2), arr270 = Rotate (arr, 3);
          // Vertical mirror is equivalent with horizontal mirrors when they have a
          // difference of 180°
