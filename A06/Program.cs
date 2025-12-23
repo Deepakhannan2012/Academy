@@ -18,7 +18,7 @@ class Program {
 
    #region Implementation -------------------------------------------
    // Checks if the found solution already exists
-   static bool DuplicateCheck (int[] sol) {
+   static bool IsUniqueSoln (int[] sol) {
       var alterSoln = TransformSolns (sol);
       for (int i = 0; i < sCount; i++) {
          var existSoln = sUniqueSolns[i];
@@ -91,7 +91,7 @@ class Program {
    static void QueenPos (int row) {
       if (row is MAXROW) {
          int[] solution = (int[])sTempSoln.Clone ();
-         if (DuplicateCheck (solution)) sUniqueSolns[sCount++] = solution;
+         if (IsUniqueSoln (solution)) sUniqueSolns[sCount++] = solution;
          return;
       }
       int column, availCount = sAvailableColPos.Count;
