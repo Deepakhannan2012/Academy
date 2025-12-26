@@ -56,7 +56,7 @@ class Program {
       // Mirrors the given array along the vertical axis
       static int[] Mirror (int[] arr) => [.. arr.Reverse ()];
 
-      // Rotates the given array by 90° clockwise by given number of times
+      // Rotates the given array by 90° clockwise
       static int[] Rotate (int[] arr) {
          int[] rotArr = new int[sQueenCount];
          for (int i = 0; i < sQueenCount; i++) rotArr[arr[i]] = sQueenCount - 1 - i;
