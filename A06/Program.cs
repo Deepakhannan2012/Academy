@@ -19,19 +19,6 @@ class Program {
    }
 
    #region Implementation -------------------------------------------
-   // Returns the solution navigation from the user input
-   static ENavi GetNavi () {
-      WriteLine ("Press\nRight Arrow -> Next Solution\nLeft Arrow -> Previous Solution\n" +
-                 "Esc -> Exit Solution");
-      while (true)
-         switch (ReadKey (true).Key) {
-            case ConsoleKey.RightArrow: return ENavi.Next;
-            case ConsoleKey.LeftArrow: return ENavi.Back;
-            case ConsoleKey.Escape: return ENavi.Exit;
-            default: WriteLine ("Press only valid keys !"); break;
-         }
-   }
-
    // Returns the number of queens for the problem
    static void GetNValue () {
       Write ("Enter the number of queens: ");
@@ -45,8 +32,8 @@ class Program {
                  $"-> (A)ll solutions\n-> (U)nique solutions");
       while (true)
          switch (ReadKey (true).Key) {
-            case ConsoleKey.A: return EType.AllSolns;
-            case ConsoleKey.U: return EType.UniqueSolns;
+            case ConsoleKey.A: return EType.AllSoln;
+            case ConsoleKey.U: return EType.UniqueSoln;
             default: WriteLine ("\nPlease enter only A or U: "); break;
          }
    }
@@ -81,36 +68,44 @@ class Program {
    static void PrintAllSoln (List<int[]> sol) {
       OutputEncoding = System.Text.Encoding.UTF8;
       int count = sFinalSolns.Count;
-      if (count == 0) WriteLine ($"No solution exists for n = {sQueenCount}");
+      if (count == 0) {
+         WriteLine ($"No solution exists for n = {sQueenCount}");
+         return;
+      }
       int i = 0;
       while (i < count) {
-         WriteLine ($"{((sSolnType == EType.AllSolns)
+         WriteLine ($"{((sSolnType == EType.AllSoln)
                    ? "All" : $"{count} unique")} solutions for the {sQueenCount} queens problem:" +
                     $"\n\nSolution {i + 1} of {count}:");
          PrintSoln (sol[i]);
-         switch (GetNavi ()) {
-            case ENavi.Next: i++; break;
-            case ENavi.Back when i != 0: i--; break;
-            case ENavi.Exit: return;
-         }
+         WriteLine ("\n→ Next | ← Previous | Esc Exit");
+         i = ReadKey (true).Key switch {
+            ConsoleKey.RightArrow when i < count - 1 => i + 1,
+            ConsoleKey.LeftArrow when i > 0 => i - 1,
+            ConsoleKey.Escape => -1,  // signal exit
+            _ => i
+         };
+         if (i == -1) return;
          Clear ();
       }
 
       // Prints one of the solution in a chess board
       static void PrintSoln (int[] sol) {
-         string empLine = $"{string.Concat (Enumerable.Repeat ($"│       ", sQueenCount))}│";
+         const char VLINE = '│';
+         const string HLINES = "───────";
+         string empLine = $"{string.Concat (Enumerable.Repeat ($"{VLINE}       ", sQueenCount))}{VLINE}";
          WriteLine (BoardRows ('┌', '┬', '┐'));
          for (int row = 0; row < sQueenCount; row++) {
             WriteLine (empLine);
             for (int col = 0; col < sQueenCount; col++)
-               Write ($"│   {((col == sol[row]) ? '♛' : ' ')}   ");
-            WriteLine ($"│\n{empLine}\n{(row == (sQueenCount - 1) ? BoardRows ('└', '┴', '┘')
+               Write ($"{VLINE}   {((col == sol[row]) ? '♛' : ' ')}   ");
+            WriteLine ($"{VLINE}\n{empLine}\n{(row == (sQueenCount - 1) ? BoardRows ('└', '┴', '┘')
                                                                   : BoardRows ('├', '┼', '┤'))}");
          }
 
          // Returns each rows of the chess board with appropriate symbols
          static string BoardRows (char left, char mid, char right)
-            => $"{left}{string.Concat (Enumerable.Repeat ($"───────{mid}", sQueenCount - 1))}───────{right}";
+            => $"{left}{string.Concat (Enumerable.Repeat ($"{HLINES}{mid}", sQueenCount - 1))}{HLINES}{right}";
       }
    }
 
@@ -118,8 +113,7 @@ class Program {
    static void QueenPos (int row) {
       if (row == sQueenCount) {
          int[] solution = (int[])sTempSoln.Clone ();
-         if (sSolnType == EType.AllSolns) sFinalSolns.Add (solution);
-         else if (IsUniqueSoln (solution)) sFinalSolns.Add (solution);
+         if (sSolnType == EType.AllSoln || IsUniqueSoln (solution)) sFinalSolns.Add (solution);
          return;
       }
       for (int column = 0; column < sQueenCount; column++)
@@ -143,8 +137,8 @@ class Program {
    #endregion
 
    #region Enums ----------------------------------------------------
-   enum EType { AllSolns, UniqueSolns }
-   enum ENavi { Next, Back, Exit }
+   // Defines the types of solutions
+   enum EType { AllSoln, UniqueSoln }
    #endregion
 
    #region Fields ---------------------------------------------------
