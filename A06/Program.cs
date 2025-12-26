@@ -19,12 +19,24 @@ class Program {
    }
 
    #region Implementation -------------------------------------------
+   // Returns the solution navigation from the user input
+   static ENavi GetNavi () {
+      WriteLine ("Press\nRight Arrow -> Next Solution\nLeft Arrow -> Previous Solution\n" +
+                 "Esc -> Exit Solution");
+      while (true)
+         switch (ReadKey (true).Key) {
+            case ConsoleKey.RightArrow: return ENavi.Next;
+            case ConsoleKey.LeftArrow: return ENavi.Back;
+            case ConsoleKey.Escape: return ENavi.Exit;
+            default: WriteLine ("Press only valid keys !"); break;
+         }
+   }
+
    // Returns the number of queens for the problem
    static void GetNValue () {
-      WriteLine ("Enter the number of queens: ");
-      while (!int.TryParse (ReadLine (), out sQueenCount) || sQueenCount is < 1 or 2 or 3)
-         Write ($"{((sQueenCount is < 1 or 2 or 3)
-              ? $"Solution does not exists for n = {sQueenCount} " : "")}Enter a valid input: ");
+      Write ("Enter the number of queens: ");
+      while (!int.TryParse (ReadLine (), out sQueenCount) || sQueenCount < 1)
+         Write ("Enter a valid input: ");
    }
 
    // Returns the solution type from the user input
@@ -39,17 +51,48 @@ class Program {
          }
    }
 
+   // Checks if the found solution already exists
+   static bool IsUniqueSoln (int[] sol) {
+      for (int i = 0; i < sFinalSolns.Count; i++) {
+         (var prevSoln, var rotated) = (sFinalSolns[i], sol);
+         for (int rotateCount = 0; rotateCount < 4; rotateCount++) {
+            rotated = Rotate (rotated);
+            if (AreEqual (prevSoln, rotated) || AreEqual (prevSoln, Mirror (rotated)))
+               return false;
+         }
+      }
+      return true;
+
+      // Checks if two arrays are equal
+      static bool AreEqual (int[] arr1, int[] arr2) => arr1.SequenceEqual (arr2);
+
+      // Mirrors the given array along the vertical axis
+      static int[] Mirror (int[] arr) => [.. arr.Reverse ()];
+
+      // Rotates the given array by 90° clockwise by given number of times
+      static int[] Rotate (int[] arr) {
+         int[] rotArr = new int[sQueenCount];
+         for (int i = 0; i < sQueenCount; i++) rotArr[arr[i]] = sQueenCount - 1 - i;
+         return rotArr;
+      }
+   }
+
    // Prints all the solutions in a chess board
    static void PrintAllSoln (List<int[]> sol) {
       OutputEncoding = System.Text.Encoding.UTF8;
       int count = sFinalSolns.Count;
-      for (int i = 0; i < count; i++) {
+      if (count == 0) WriteLine ($"No solution exists for n = {sQueenCount}");
+      int i = 0;
+      while (i < count) {
          WriteLine ($"{((sSolnType == EType.AllSolns)
                    ? "All" : $"{count} unique")} solutions for the {sQueenCount} queens problem:" +
                     $"\n\nSolution {i + 1} of {count}:");
          PrintSoln (sol[i]);
-         WriteLine ("Press any key to navigate to the next solution...");
-         ReadKey ();
+         switch (GetNavi ()) {
+            case ENavi.Next: i++; break;
+            case ENavi.Back when i != 0: i--; break;
+            case ENavi.Exit: return;
+         }
          Clear ();
       }
 
@@ -85,48 +128,15 @@ class Program {
             QueenPos (row + 1);
          }
 
-      // Checks if the found solution already exists
-      static bool IsUniqueSoln (int[] sol) {
-         for (int i = 0; i < sFinalSolns.Count; i++) {
-            var prevSoln = sFinalSolns[i];
-            for (int rotateCount = 0; rotateCount < 4; rotateCount++) {
-               var rotated = Rotate (sol, rotateCount);
-               if (AreEqual (prevSoln, rotated) || AreEqual (prevSoln, Mirror (rotated)))
-                  return false;
-            }
-         }
-         return true;
-
-         // Checks if two arrays are equal
-         static bool AreEqual (int[] arr1, int[] arr2) => arr1.SequenceEqual (arr2);
-
-         // Mirrors the given array along the vertical axis
-         static int[] Mirror (int[] arr) {
-            Array.Reverse (arr);
-            return arr;
-         }
-
-         // Rotates the given array by 90° clockwise by given number of times
-         static int[] Rotate (int[] arr, int count) {
-            if (count == 0) return arr;
-            int[] tempArr = new int[sQueenCount];
-            for (int i = 0; i < count; i++) {
-               if (i != 0) Array.Clear (tempArr);
-               for (int row = 0; row < sQueenCount; row++) tempArr[arr[row]] = sQueenCount - 1 - row;
-               arr = (int[])tempArr.Clone ();
-            }
-            return arr;
-         }
-      }
-
       // Checks if the column position is valid
       static bool IsValidPos (int row, int column) {
-         for (int prevRow = 0; prevRow < row; prevRow++)
+         for (int prevRow = 0; prevRow < row; prevRow++) {
+            var prevCol = sTempSoln[prevRow];
             // The previous queen is considered as the origin for current queen position
             // to check the diagonal and the column clash is also checked
-            if (sTempSoln[prevRow] == column
-                || (Math.Abs (prevRow - row) == Math.Abs (sTempSoln[prevRow] - column)))
+            if (prevCol == column || (Math.Abs (prevRow - row) == Math.Abs (prevCol - column)))
                return false;
+         }
          return true;
       }
    }
@@ -134,6 +144,7 @@ class Program {
 
    #region Enums ----------------------------------------------------
    enum EType { AllSolns, UniqueSolns }
+   enum ENavi { Next, Back, Exit }
    #endregion
 
    #region Fields ---------------------------------------------------
