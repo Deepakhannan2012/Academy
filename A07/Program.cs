@@ -5,97 +5,83 @@
 // Program.cs
 // Program to implement the Double.Parse method
 // ------------------------------------------------------------------------------------------------
-using System.Transactions;
 using static System.Console;
 
-namespace A07;
-
+#region class Program -----------------------------------------------------------------------------
 class Program {
    static void Main () {
-      string[] validArr = ["0","5","42","000123","+5","-5","+0","-0","0.5","5.0",".5",
-         "5.","000.250","+0.5","-0.5","+.75","-.25","1e2","1e-2","1e+2","5.3e3",
-         "0.5e-1","+1e2","-1e2","+.5e+3","-.5e-3","1.",".0","0e0","10e-0", "+3.14E-2"];
-
-      string[] invalidArr = ["1e2e3","1ee2","1e","1e+","1e-","12a","3.4f",
-         "1_000","NaN","Infinity",".","+.","-.","e10","+","-","e","+e10","-e10","1e2e",
-         "1e2+","1e2-","1.0.0","0..1"];
-
-      TestCases (invalidArr);
+      Write ("Enter the number to be converted to a double: ");
+      WriteLine ($"The converted double is {double.Parse (ReadLine () ?? "")}.");
    }
 
+   #region Implementation -------------------------------------------
+   // Converts the given input into a double
    static double DoubleParse (string input) {
-      int integer = 0, fraction = 0, exponent = 0, sign, expSign = 1, div = 0, num;
-      bool deciPart = false, expPart = false;
-
+      int integer = 0, frac = 0, exponent = 0, sign, expSign = 1, div = 0, num;
+      (bool deciPart, bool expPart) = (false, false);
+      if (string.IsNullOrEmpty (input) || !input.Any (Char.IsDigit)) ThrowError (input);
       if (input.Contains ('E')) input = input.ToLower ();
-      if (string.IsNullOrEmpty (input) || !input.Any (Char.IsDigit)) return -1.1;
-
       EChar flags = EChar.Null;
-
-      sign = input[0] is '-' ? -1 : 1;
+      sign = input[0] == '-' ? -1 : 1;
       input = (input[0] is '+' or '-') ? input[1..] : input;
-
       foreach (char a in input) {
-         num = a - '0';
          switch (a) {
+            // Checks if the decimal is present only after an integer or in the first position
             case '.' when flags is EChar.Null or EChar.Integer:
                deciPart = true;
                flags |= EChar.Integer | EChar.Decimal;
                continue;
-            case 'e' when ((flags & EChar.Fraction) != 0 || (flags & EChar.Integer) != 0) && !flags.HasFlag(EChar.ExpSign):
+            // Checks if the 'e' is present only after an integer or after the decimal which
+            // indirectly ensures that a digit is present before the 'e'
+            case 'e' when ((flags & EChar.Fraction) != 0 || (flags & EChar.Integer) != 0)
+                            && (flags & EChar.ExpSign) == 0:
                flags |= EChar.ExpSign;
                (expPart, deciPart) = (true, false);
                continue;
-
-            case '+' when flags.HasFlag (EChar.ExpSign) && !flags.HasFlag (EChar.Exponent):
-            case '-' when flags.HasFlag (EChar.ExpSign) && !flags.HasFlag (EChar.Exponent):
+            // Checks if the sign is present only after the 'e'
+            case '+' when (flags & EChar.ExpSign) != 0 && (flags & EChar.Exponent) == 0:
+            case '-' when (flags & EChar.ExpSign) != 0 && (flags & EChar.Exponent) == 0:
                expSign = (a == '-') ? -1 : 1;
                flags |= EChar.ExpSign;
                continue;
             default:
                if (Char.IsDigit (a)) {
+                  num = a - '0';
+                  // Adds numbers to the decimal part of the double
                   if (deciPart) {
                      flags |= EChar.Fraction;
-                     fraction = (fraction * 10) + num;
+                     frac = (frac * 10) + num;
                      div++;
                      continue;
                   }
+                  // Adds numbers to the exponent part of the double
                   if (expPart) {
                      flags |= EChar.Exponent;
-                     exponent = (exponent * 10) + num;
+                     exponent *= 10 + num;
                      continue;
                   }
+                  // Adds numbers to the integer part of the double
                   integer = (integer * 10) + num;
                   flags |= EChar.Integer;
                   continue;
                }
-               //if (!(((flags & EChar.ExpSign) == 0) ^ ((flags & EChar.Exponent) == 0))) ;
-               if ((flags & EChar.ExpSign) != 0 )
-               return -1.1;                                                                          //// invalid
-               //ThrowError ();
+               ThrowError (input);
                break;
          }
       }
-      return sign * ((integer + fraction / Math.Pow (10, div)) * Math.Pow (10, expSign * exponent));
+      // Checks if a digit is present after the 'e'
+      if ((flags & EChar.ExpSign) != 0 && (flags & EChar.Exponent) == 0) ThrowError (input);
+      return sign * ((integer + frac * Math.Pow (10, -div)) * Math.Pow (10, expSign * exponent));
    }
 
-   static void ThrowError () => throw new Exception ("Not in correct format");
+   // Throws an error when the input is not of the proper format
+   static void ThrowError (string input)
+      => throw new FormatException ($"The input string '{input}' was not in a correct format");
+   #endregion
 
-   static void TestCases (string[] arr) {
-      foreach (var item in arr) {
-         WriteLine ($"> Our result: {DoubleParse (item)}");
-         //WriteLine ($"  Expected result: {double.Parse (item)}");
-         //if (DoubleParse (item) == double.Parse (item)) {
-         //   ForegroundColor = ConsoleColor.Green;
-         //   Console.WriteLine ("Answer matches");
-         //} else {
-         //   ForegroundColor = ConsoleColor.Red;
-         //   Console.WriteLine ("Answer does not match");
-         //}
-         //ResetColor ();
-         Console.WriteLine ();
-      }
-   }
-
+   #region Enum -----------------------------------------------------
+   // Defines the multiple components of a double
    enum EChar { Null = 0, Integer = 1, Decimal = 2, Fraction = 4, ExpSign = 8, Exponent = 16 }
+   #endregion
 }
+#endregion
