@@ -11,7 +11,7 @@ using static System.Console;
 class Program {
    static void Main () {
       Write ("Enter the number to be converted to a double: ");
-      WriteLine ($"The converted double is {double.Parse (ReadLine () ?? "")}.");
+      WriteLine ($"The converted double is {DoubleParse (ReadLine () ?? "")}.");
    }
 
    #region Implementation -------------------------------------------
@@ -57,7 +57,7 @@ class Program {
                   // Adds numbers to the exponent part of the double
                   if (expPart) {
                      flags |= EChar.Exponent;
-                     exponent *= 10 + num;
+                     exponent = (exponent * 10) + num;
                      continue;
                   }
                   // Adds numbers to the integer part of the double
