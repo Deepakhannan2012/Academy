@@ -1,21 +1,30 @@
-﻿namespace A09;
+﻿// ------------------------------------------------------------------------------------------------
+// Training ~ A training program for new joinees at Metamation, Batch- July 2025.
+// Copyright (c) Metamation India.
+// ------------------------------------------------------------------
+// Program.cs
+// Program to implement unary minus in the expression evaluator
+// ------------------------------------------------------------------------------------------------
+using static System.Console;
+
+namespace A09;
 
 class Program {
-   static void Main (string[] args) {
+   static void Main () {
       var eval = new Evaluator ();
-      for (; ; ) {
-         Console.Write ("> ");
-         string text = Console.ReadLine () ?? "";
+      while (true) {
+         Write ("> ");
+         string text = ReadLine () ?? "";
          if (text == "exit") break;
          try {
             double result = eval.Evaluate (text);
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine (result);
+            ForegroundColor = ConsoleColor.Green;
+            WriteLine (result);
          } catch (Exception e) {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine (e.Message);
+            ForegroundColor = ConsoleColor.Yellow;
+            WriteLine (e.Message);
          }
-         Console.ResetColor ();
+         ResetColor ();
       }
    }
 }

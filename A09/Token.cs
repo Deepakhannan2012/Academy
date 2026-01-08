@@ -6,11 +6,10 @@ abstract class TNumber : Token {
    public abstract double Value { get; }
 }
 
-class TLiteral : TNumber {
-   public TLiteral (double f) => mValue = f;
+class TLiteral (double f) : TNumber {
    public override double Value => mValue;
    public override string ToString () => $"literal:{Value}";
-   readonly double mValue;
+   readonly double mValue = f;
 }
 
 class TVariable : TNumber {
@@ -21,17 +20,25 @@ class TVariable : TNumber {
    readonly Evaluator mEval;
 }
 
-abstract class TOperator : Token {
-   protected TOperator (Evaluator eval) => mEval = eval;
+abstract class TOperator (Evaluator eval) : Token {
    public abstract int Priority { get; }
-   readonly protected Evaluator mEval;
+   readonly protected Evaluator mEval = eval;
+   readonly int mPriority;
 }
 
-class TOpArithmetic : TOperator {
-   public TOpArithmetic (Evaluator eval, char ch) : base (eval) => Op = ch;
-   public char Op { get; private set; }
+class TOpUnary (Evaluator eval, char ch, bool inPara) : TOperator (eval) {
+   public char Op { get; private set; } = ch;
+   public bool InPara { get; private set; } = inPara;
    public override string ToString () => $"op:{Op}:{Priority}";
-   public override int Priority => sPriority[Op] + mEval.BasePriority;
+   public override int Priority => 5 + (InPara ? mEval.BasePriority : 0);
+   public double Evaluate (double a) => -a;
+}
+
+class TOpArithmetic (Evaluator eval, char ch, bool inPara) : TOperator (eval) {
+   public char Op { get; private set; } = ch;
+   public bool InPara { get; private set; } = inPara;
+   public override string ToString () => $"op:{Op}:{Priority}";
+   public override int Priority => sPriority[Op] + (InPara ? mEval.BasePriority : 0);
    static Dictionary<char, int> sPriority = new () {
       ['+'] = 1, ['-'] = 1, ['*'] = 2, ['/'] = 2, ['^'] = 3, ['='] = 4,
    };
@@ -48,11 +55,11 @@ class TOpArithmetic : TOperator {
    }
 }
 
-class TOpFunction : TOperator {
-   public TOpFunction (Evaluator eval, string name) : base (eval) => Func = name;
-   public string Func { get; private set; }
+class TOpFunction (Evaluator eval, string name, bool inPara) : TOperator (eval) {
+   public string Func { get; private set; } = name;
+   public bool InPara { get; private set; } = inPara;
    public override string ToString () => $"func:{Func}:{Priority}";
-   public override int Priority => 4 + mEval.BasePriority;
+   public override int Priority => 4 + (InPara ? mEval.BasePriority : 0);
 
    public double Evaluate (double f) {
       return Func switch {
@@ -73,9 +80,8 @@ class TOpFunction : TOperator {
    }
 }
 
-class TPunctuation : Token {
-   public TPunctuation (char ch) => Punct = ch;
-   public char Punct { get; private set; }
+class TPunctuation (char ch) : Token {
+   public char Punct { get; private set; } = ch;
    public override string ToString () => $"punct:{Punct}";
 }
 
@@ -83,9 +89,7 @@ class TEnd : Token {
    public override string ToString () => "end";
 }
 
-class TError : Token {
-   public TError (string message) => Message = message;
-   public string Message { get; private set; }
+class TError (string message) : Token {
+   public string Message { get; private set; } = message;
    public override string ToString () => $"error:{Message}";
 }
-
