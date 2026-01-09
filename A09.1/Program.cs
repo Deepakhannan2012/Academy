@@ -12,30 +12,32 @@ using static System.Console;
 class Program {
    static void Main () {
       Queue<int> queue = new ();
-      TQueue<int> myQueue = new ();
-      myQueue.Enqueue (1);
+      TQueue<int> TQueue = new ();
+      TQueue.Enqueue (1);
       queue.Enqueue (1);
-      myQueue.Enqueue (2);
+      TQueue.Enqueue (2);
       queue.Enqueue (2);
-      myQueue.Enqueue (3);
+      TQueue.Enqueue (3);
       queue.Enqueue (3);
-      myQueue.Enqueue (4);
+      TQueue.Enqueue (4);
       queue.Enqueue (4);
-      myQueue.Enqueue (5);
+      TQueue.Enqueue (5);
       queue.Enqueue (5);
-      myQueue.Dequeue ();
+      TQueue.Dequeue ();
       queue.Dequeue ();
-      myQueue.Dequeue ();
+      TQueue.Dequeue ();
       queue.Dequeue ();
-      myQueue.Enqueue (6);
+      TQueue.Enqueue (6);
       queue.Enqueue (6);
-      myQueue.Enqueue (7);
+      TQueue.Enqueue (7);
       queue.Enqueue (7);
-      Write ("Comparing the default queue and the custom myQueue after the given set of operations:" +
-         "\n\nDefault Queue:\nCount => {queue.Count}\nCapacity => {queue.Capacity}\nElements => ");
+      Write ("Comparing the default queue and the custom TQueue after a given set of operations:" +
+             "\n\nDefault Queue:\nCount => {queue.Count}" +
+             "\nCapacity => {queue.Capacity}\nElements => ");
       foreach (var item in queue) Write ($"{item} ");
-      Write ($"\n\nCustom Queue:\nCount => {myQueue.Count}\nCapacity => {myQueue.Capacity}\nElements => ");
-      foreach (var item in myQueue) Write ($"{item} ");
+      Write ($"\n\nCustom TQueue:\nCount => {TQueue.Count}" +
+             $"\nCapacity => {TQueue.Capacity}\nElements => ");
+      foreach (var item in TQueue) Write ($"{item} ");
       WriteLine ();
    }
 }
@@ -62,7 +64,7 @@ class TQueue<T> {
    // Removes and returns the element from the front of the queue
    public T Dequeue () {
       IsValidOp ();
-      ModCapacity (mStart);
+      ModCapacity (ref mStart);
       mCount--;
       return mItems[mStart++];
    }
@@ -70,7 +72,7 @@ class TQueue<T> {
    // Adds the element to the queue
    public void Enqueue (T a) {
       if (mCount == Capacity) Resize ();
-      ModCapacity (mEnd);
+      ModCapacity (ref mEnd);
       mItems[mEnd++] = a;
       mCount++;
    }
@@ -81,7 +83,7 @@ class TQueue<T> {
    // Returns the element from the front of the queue
    public T Peek () {
       IsValidOp ();
-      ModCapacity (mStart);
+      ModCapacity (ref mStart);
       return mItems[mStart];
    }
    #endregion
@@ -89,7 +91,11 @@ class TQueue<T> {
    #region Implementation -------------------------------------------
    // Enables foreach iteration for the custom queue
    public IEnumerator<T> GetEnumerator () {
-      for (int i = 0; i < mCount; i++) yield return mItems[ModCapacity (mStart + i)];
+      for (int i = 0; i < mCount; i++) {
+         int temp = mStart + i;
+         ModCapacity (ref temp);
+         yield return mItems[temp];
+      }
    }
 
    // Throws an exception if the queue is empty
@@ -98,7 +104,7 @@ class TQueue<T> {
    }
 
    // Returns the modulus of the input with the capacity of the queue
-   int ModCapacity (int num) => num % Capacity;
+   void ModCapacity (ref int num) => num %= Capacity;
 
    // Doubles the size of the underlying array
    void Resize () {
