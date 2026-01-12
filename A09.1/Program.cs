@@ -5,7 +5,7 @@
 // Program.cs
 // Program to implement the Queue collection using a circular buffer
 // ------------------------------------------------------------------------------------------------
-namespace A09._1;
+namespace A09._3;
 using static System.Console;
 
 #region class Program -----------------------------------------------------------------------------
@@ -32,8 +32,8 @@ class Program {
       TQueue.Enqueue (7);
       queue.Enqueue (7);
       Write ("Comparing the default queue and the custom TQueue after a given set of operations:" +
-             "\n\nDefault Queue:\nCount => {queue.Count}" +
-             "\nCapacity => {queue.Capacity}\nElements => ");
+             $"\n\nDefault Queue:\nCount => {queue.Count}" +
+             $"\nCapacity => {queue.Capacity}\nElements => ");
       foreach (var item in queue) Write ($"{item} ");
       Write ($"\n\nCustom TQueue:\nCount => {TQueue.Count}" +
              $"\nCapacity => {TQueue.Capacity}\nElements => ");
@@ -109,9 +109,10 @@ class TQueue<T> {
    // Doubles the size of the underlying array
    void Resize () {
       T[] tempArr = new T[Capacity * 2];
-      int headPos = mStart;
-      for (int i = 0; i < Capacity - headPos; i++) tempArr[i] = mItems[mStart++];
-      for (int i = Capacity - 1; i >= Capacity - headPos; i--) tempArr[i] = mItems[--mEnd];
+      for (int i = 0; i < Capacity; i++) {
+         ModCapacity (ref mStart);
+         tempArr[i] = mItems[mStart++];
+      }
       (mStart, mEnd) = (0, Capacity);
       mItems = tempArr;
    }
