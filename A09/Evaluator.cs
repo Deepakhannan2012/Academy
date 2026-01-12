@@ -1,16 +1,20 @@
 ﻿namespace A09;
-class EvalException : Exception {
-   public EvalException (string message) : base (message) { }
-}
+class EvalException (string message) : Exception (message) { }
 
 class Evaluator {
    public double Evaluate (string text) {
-      List<Token> tokens = new ();
+      List<Token> tokens = [];
       var tokenizer = new Tokenizer (this, text);
-      for (; ; ) {
+      Token? prevToken = null;
+      mOperands.Clear ();
+      mOperators.Clear ();
+      while (true) {
          var token = tokenizer.Next ();
          if (token is TEnd) break;
          if (token is TError err) throw new EvalException (err.Message);
+         if (token is TOpArithmetic { Op: '-' } arith && prevToken is not (TNumber or TPunctuation { Punct: ')'})) token = new TOpUnary (this, arith.Op, arith.BracketPriority);
+         if (token is TOpArithmetic { Op: '+' } arith1 && prevToken is not (TNumber or TPunctuation {Punct: ')' })) token = new TOpUnary (this, arith1.Op, arith1.BracketPriority);
+         prevToken = token;
          tokens.Add (token);
       }
 
@@ -24,45 +28,45 @@ class Evaluator {
       while (mOperators.Count > 0) ApplyOperator ();
       double f = mOperands.Pop ();
       if (tVariable != null) mVars[tVariable.Name] = f;
+      if (tokenizer.BracketCount != 0) throw new EvalException ("Parenthesis mismatch");
+      if (mOperators.Count > 0) throw new EvalException ("Too many operators");
+      if (mOperands.Count > 1) throw new EvalException ("Too many operands");
       return f;
    }
-
-   public int BasePriority { get; private set; }
 
    public double GetVariable (string name) {
       if (mVars.TryGetValue (name, out double f)) return f;
       throw new EvalException ($"Unknown variable: {name}");
    }
-   readonly Dictionary<string, double> mVars = new ();
+   readonly Dictionary<string, double> mVars = [];
 
    void Process (Token token) {
       switch (token) {
-         case TNumber num:
-            mOperands.Push (num.Value);
-            break;
+         case TNumber num: mOperands.Push (num.Value); break;
          case TOperator op:
-            while (mOperators.Count > 0 && mOperators.Peek ().Priority > op.Priority)
+            while (mOperators.Count > 0 && mOperators.Peek ().Priority >= op.Priority && op is not (TOpUnary or TOpFunction))
                ApplyOperator ();
             mOperators.Push (op);
             break;
          case TPunctuation p:
-            BasePriority += p.Punct == '(' ? 10 : -10;
+            if (p.Punct == ')') while (mOperators.Count > 0) ApplyOperator ();
             break;
-         default:
-            throw new EvalException ($"Unknown token: {token}");
+         default: throw new EvalException ($"Unknown token: {token}");
       }
    }
+
    readonly Stack<double> mOperands = new ();
    readonly Stack<TOperator> mOperators = new ();
 
    void ApplyOperator () {
       var op = mOperators.Pop ();
       var f1 = mOperands.Pop ();
-      if (op is TOpFunction func) mOperands.Push (func.Evaluate (f1));
-      else if (op is TOpArithmetic arith) {
-         var f2 = mOperands.Pop ();
-         mOperands.Push (arith.Evaluate (f2, f1));
+      switch (op) {
+         case TOpFunction func: mOperands.Push (func.Evaluate (f1)); break;
+         case TOpArithmetic arith:
+            var f2 = mOperands.Pop ();
+            mOperands.Push (arith.Evaluate (f2, f1)); break;
+         case TOpUnary unary: mOperands.Push (unary.Evaluate (f1)); break;
       }
    }
 }
-
