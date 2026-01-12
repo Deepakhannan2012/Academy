@@ -6,11 +6,14 @@ class Evaluator {
       List<Token> tokens = [];
       var tokenizer = new Tokenizer (this, text);
       Token? prevToken = null;
+      mOperands.Clear ();
+      mOperators.Clear ();
       while (true) {
          var token = tokenizer.Next ();
          if (token is TEnd) break;
          if (token is TError err) throw new EvalException (err.Message);
-         if (token is TOpArithmetic { Op: '-' } arith && prevToken is not TLiteral) token = new TOpUnary (this, '-', arith.InPara);
+         if (token is TOpArithmetic { Op: '-' } arith && prevToken is not (TNumber or TPunctuation { Punct: ')'})) token = new TOpUnary (this, arith.Op, arith.BracketPriority);
+         if (token is TOpArithmetic { Op: '+' } arith1 && prevToken is not (TNumber or TPunctuation {Punct: ')' })) token = new TOpUnary (this, arith1.Op, arith1.BracketPriority);
          prevToken = token;
          tokens.Add (token);
       }
@@ -25,10 +28,11 @@ class Evaluator {
       while (mOperators.Count > 0) ApplyOperator ();
       double f = mOperands.Pop ();
       if (tVariable != null) mVars[tVariable.Name] = f;
+      if (tokenizer.BracketCount != 0) throw new EvalException ("Parenthesis mismatch");
+      if (mOperators.Count > 0) throw new EvalException ("Too many operators");
+      if (mOperands.Count > 1) throw new EvalException ("Too many operands");
       return f;
    }
-
-   public int BasePriority { get; private set; }
 
    public double GetVariable (string name) {
       if (mVars.TryGetValue (name, out double f)) return f;
@@ -40,11 +44,13 @@ class Evaluator {
       switch (token) {
          case TNumber num: mOperands.Push (num.Value); break;
          case TOperator op:
-            while (mOperators.Count > 0 && mOperators.Peek ().Priority > op.Priority)
+            while (mOperators.Count > 0 && mOperators.Peek ().Priority >= op.Priority && op is not (TOpUnary or TOpFunction))
                ApplyOperator ();
             mOperators.Push (op);
             break;
-         case TPunctuation p: BasePriority += p.Punct == '(' ? 10 : -10; break;
+         case TPunctuation p:
+            if (p.Punct == ')') while (mOperators.Count > 0) ApplyOperator ();
+            break;
          default: throw new EvalException ($"Unknown token: {token}");
       }
    }

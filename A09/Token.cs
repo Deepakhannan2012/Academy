@@ -26,19 +26,19 @@ abstract class TOperator (Evaluator eval) : Token {
    readonly int mPriority;
 }
 
-class TOpUnary (Evaluator eval, char ch, bool inPara) : TOperator (eval) {
+class TOpUnary (Evaluator eval, char ch, int bracketDepth) : TOperator (eval) {
    public char Op { get; private set; } = ch;
-   public bool InPara { get; private set; } = inPara;
+   public int BracketPriority { get; private set; } = bracketDepth * 10;
    public override string ToString () => $"op:{Op}:{Priority}";
-   public override int Priority => 5 + (InPara ? mEval.BasePriority : 0);
-   public double Evaluate (double a) => -a;
+   public override int Priority => 5 + BracketPriority;
+   public double Evaluate (double a) => (Op == '-') ? -a : a;
 }
 
-class TOpArithmetic (Evaluator eval, char ch, bool inPara) : TOperator (eval) {
+class TOpArithmetic (Evaluator eval, char ch, int bracketDepth) : TOperator (eval) {
    public char Op { get; private set; } = ch;
-   public bool InPara { get; private set; } = inPara;
+   public int BracketPriority { get; private set; } = bracketDepth * 10;
    public override string ToString () => $"op:{Op}:{Priority}";
-   public override int Priority => sPriority[Op] + (InPara ? mEval.BasePriority : 0);
+   public override int Priority => sPriority[Op] + BracketPriority;
    static Dictionary<char, int> sPriority = new () {
       ['+'] = 1, ['-'] = 1, ['*'] = 2, ['/'] = 2, ['^'] = 3, ['='] = 4,
    };
@@ -55,11 +55,11 @@ class TOpArithmetic (Evaluator eval, char ch, bool inPara) : TOperator (eval) {
    }
 }
 
-class TOpFunction (Evaluator eval, string name, bool inPara) : TOperator (eval) {
+class TOpFunction (Evaluator eval, string name, int bracketDepth) : TOperator (eval) {
    public string Func { get; private set; } = name;
-   public bool InPara { get; private set; } = inPara;
+   public int BracketPriority { get; private set; } = bracketDepth * 10;
    public override string ToString () => $"func:{Func}:{Priority}";
-   public override int Priority => 4 + (InPara ? mEval.BasePriority : 0);
+   public override int Priority => 4 + BracketPriority;
 
    public double Evaluate (double f) {
       return Func switch {
