@@ -33,24 +33,24 @@ class Program {
       System.Text.StringBuilder temp = new (), folder = new ();
       Action none = () => { }, todo;
       var s = A;
-      // Throws an error if lowercase letters are present
-      if (input.Any (Char.IsLower)) Error ();
       foreach (var ch in input + '~') {
          if (Char.IsLetter (ch)) { temp.Append (ch); continue; }
          name = temp.ToString ();
          (s, todo) = (s, ch) switch {
-            (A, ':') => (B, () => drive = name),
-            (B, '\\') => (C, () => { if (temp.Length != 0) Error (); }),
+            (A, ':') => (B, () => { if (name.Length != 1) Error (); drive = name; }),
+            (B, '\\') => (C, none),
             (C or D, '\\') => (D, () => folder.Append (name + '\\')),
             (D, '.') => (E, () => file = name),
-            (E, '~') => (H, () => ext = '.' + name),
+            (E, '~') => (H, () => ext = name),
             _ => (Z, none)
          };
          todo ();
          temp.Clear ();
       }
       if (folder.Length > 0) folder.Length--;
-      if (s == H) return (drive, folder.ToString (), file, ext);
+      string folderName = folder.ToString ();
+      if (new[] { drive, file, folderName, ext }.Any (string.IsNullOrWhiteSpace)) Error ();
+      if (s == H) return (drive, folderName, file, ext);
       throw Error ();
 
       // Throws and returns an error when the file path is not valid
