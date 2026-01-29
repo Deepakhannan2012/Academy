@@ -11,28 +11,79 @@ namespace A10._2;
 #region class Program -----------------------------------------------------------------------------
 class Program {
    static void Main () {
-      TQueue<int> TQueue = new ();
-      TQueue.EnqueueRear (1);
-      TQueue.EnqueueRear (2);
-      TQueue.EnqueueFront (3);
-      TQueue.EnqueueFront (4);
-      TQueue.EnqueueRear (5);
-      TQueue.EnqueueFront (6);
-      TQueue.DequeueRear ();
-      TQueue.DequeueFront ();
-      TQueue.EnqueueFront (7);
-      Write ($"Custom TQueue:\nCount => {TQueue.Count}" +
-             $"\nCapacity => {TQueue.Capacity}\nElements => ");
-      foreach (var item in TQueue) Write ($"{item} ");
+      TDEndQueue<int> TQueue = new ();
+      TestEnqueueRear (TQueue);
+      TestEnqueueFront (TQueue);
+      TestDequeueFront (TQueue);
+      TestDequeueRear (TQueue);
+   }
+
+   #region Implementation -------------------------------------------
+   // Tests the method DequeueFront
+   static void TestDequeueFront (TDEndQueue<int> mQ) {
+      WriteLine ("TestDequeueFront:");
+      for (int i = 1; i <= 8; i++) mQ.EnqueueRear (i);
+      bool passed = true;
+      for (int j = 1; j <= 8; j++) {
+         int val = mQ.DequeueFront ();
+         WriteLine ($"Dequeued: {val}");
+         if (val != j) passed = false;
+      }
+      if (!mQ.IsEmpty) passed = false;
+      WriteLine ($"TestDequeueFront Passed? {passed}");
       WriteLine ();
    }
+
+   // Tests the method DequeueRear
+   static void TestDequeueRear (TDEndQueue<int> mQ) {
+      WriteLine ("TestDequeueRear:");
+      for (int i = 1; i <= 8; i++) mQ.EnqueueFront (i);
+      bool passed = true;
+      for (int j = 1; j <= 8; j++) {
+         int val = mQ.DequeueRear ();
+         WriteLine ($"Dequeued: {val}");
+         if (val != j) passed = false;
+      }
+      if (!mQ.IsEmpty) passed = false;
+      WriteLine ($"TestDequeueRear Passed? {passed}");
+      WriteLine ();
+   }
+
+   // Tests the method EnqueueFront
+   static void TestEnqueueFront (TDEndQueue<int> mQ) {
+      WriteLine ("TestEnqueueFront:");
+      for (int i = 1; i <= 4; i++) mQ.EnqueueFront (i);
+      bool passed = true;
+      for (int j = 1; j <= 4; j++) {
+         int val = mQ.DequeueRear ();
+         WriteLine ($"Dequeued: {val}");
+         if (val != j) passed = false;
+      }
+      WriteLine ($"TestEnqueueFront Passed? {passed}");
+      WriteLine ();
+   }
+
+   // Tests the method EnqueueRear
+   static void TestEnqueueRear (TDEndQueue<int> mQ) {
+      WriteLine ("TestEnqueueRear:");
+      for (int i = 1; i <= 4; i++) mQ.EnqueueRear (i);
+      bool passed = true;
+      for (int j = 1; j <= 4; j++) {
+         int val = mQ.DequeueFront ();
+         WriteLine ($"Dequeued: {val}");
+         if (val != j) passed = false;
+      }
+      WriteLine ($"TestEnqueueRear Passed? {passed}");
+      WriteLine ();
+   }
+   #endregion
 }
 #endregion
 
 #region class TQueue<T> ---------------------------------------------------------------------------
-class TQueue<T> {
+class TDEndQueue<T> {
    #region Constructor ----------------------------------------------
-   public TQueue () {
+   public TDEndQueue () {
       mItems = new T[4];
       (mCount, mStart, mEnd) = (0, 0, 0);
    }
@@ -58,9 +109,10 @@ class TQueue<T> {
    // Removes and returns the element front the back of the queue
    public T DequeueRear () {
       IsValidOp ();
+      --mEnd;
       ModCapacity (ref mEnd);
       mCount--;
-      return mItems[mEnd--];
+      return mItems[mEnd];
    }
 
    // Adds the element to the front of the queue
