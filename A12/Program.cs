@@ -39,9 +39,9 @@ class Wordle () {
 
    #region Implementation -------------------------------------------
    // Displays the board with the input columns and the alphabets
-   static void DisplayBoard () {
+   void DisplayBoard () {
       CursorTop = 0;
-      if (sRow == 0) sWordArray[sCol][sRow].Item1 = sCircle;
+      if (sCol == 0) sWordArray[sRow][sCol].Item1 = sCircle;
       foreach (var row in sWordArray) {
          CursorLeft = 53;
          foreach (var (letter, color) in row) {
@@ -77,7 +77,7 @@ class Wordle () {
    }
 
    // Initialises the letter dictionary and the jagged array with default values
-   static void InitialiseArrays () {
+   void InitialiseArrays () {
       for (int i = 0; i < sWordArray.Length; i++)
          sWordArray[i] = new (char, ConsoleColor)[5];
       for (int i = 0; i < sWordArray.Length; i++)
@@ -88,10 +88,10 @@ class Wordle () {
    }
 
    // Prints the final results
-   static void PrintResult () {
+   void PrintResult () {
       string result;
       (result, ForegroundColor, CursorLeft) = (sWord == sSecretWord)
-                                            ? ($"You found the word in {++sCol} tries", Green, 45)
+                                            ? ($"You found the word in {++sRow} tries", Green, 45)
                                             : ($"Sorry - the word was {sSecretWord}", Yellow, 47);
       WriteLine (result);
       ResetColor ();
@@ -100,27 +100,27 @@ class Wordle () {
    }
 
    // Selects a 5 letter word at random from the given list
-   static void SelectWord () {
+   void SelectWord () {
       var words = File.ReadAllLines ("puzzle-5.txt");
       Random random = new ();
       sSecretWord = words[random.Next (words.Length)];
    }
 
    // Updates the inputs with its corresponding color
-   static void UpdateGameState (ConsoleKeyInfo key) {
-      var currentCol = sWordArray[sCol];
-      if (key.Key is ConsoleKey.Backspace or ConsoleKey.LeftArrow && sRow != 0) {
+   void UpdateGameState (ConsoleKeyInfo key) {
+      var currentCol = sWordArray[sRow];
+      if (key.Key is ConsoleKey.Backspace or ConsoleKey.LeftArrow && sCol != 0) {
          // Replaces the last letter with a dot and moves the circle one step back
-         currentCol[--sRow].Item1 = sDot;
-         currentCol[sRow].Item1 = sCircle;
-         if (sRow != 4) currentCol[sRow + 1].Item1 = sDot;
+         currentCol[--sCol].Item1 = sDot;
+         currentCol[sCol].Item1 = sCircle;
+         if (sCol != 4) currentCol[sCol + 1].Item1 = sDot;
          return;
       }
-      if (sRow != 5) {
+      if (sCol != 5) {
          var letter = char.ToUpper (key.KeyChar);
          if (!char.IsLetter (letter)) return;
-         currentCol[sRow++].Item1 = letter;
-         if (sRow != 5) currentCol[sRow].Item1 = sCircle;
+         currentCol[sCol++].Item1 = letter;
+         if (sCol != 5) currentCol[sCol].Item1 = sCircle;
       }
       if (key.Key == ConsoleKey.Enter) {
          // Creates a string from the input letters and checks if it is a valid word
@@ -139,8 +139,8 @@ class Wordle () {
             currentCol[i].Item2 = sAllLetters[letter];
          }
          // The game ends when either the secret word is guessed or all 6 tries are used
-         if (sWord == sSecretWord || sCol == 5) { sGameOver = true; return; }
-         if (sRow == 5) { sCol++; sRow = 0; }
+         if (sWord == sSecretWord || sRow == 5) { sGameOver = true; return; }
+         if (sCol == 5) { sRow++; sCol = 0; }
       }
    }
    #endregion
@@ -148,19 +148,19 @@ class Wordle () {
    #region Fields ---------------------------------------------------
    // Bool that indicates if the game is over
    // and if it is a valid word respectively
-   static bool sGameOver, sIsWord = true;
+   bool sGameOver, sIsWord = true;
    // Strings that stores the secret word and input of each attempt respectively
-   static string sSecretWord = "", sWord = "";
+   string sSecretWord = "", sWord = "";
    // Stores the default dot and circle character
-   static char sDot = '\u00b7', sCircle = '\u25cc';
+   char sDot = '\u00b7', sCircle = '\u25cc';
    // Stores the letter and color of each input
-   static (char, ConsoleColor)[][] sWordArray = new (char, ConsoleColor)[6][];
+   (char, ConsoleColor)[][] sWordArray = new (char, ConsoleColor)[6][];
    // Stores every alphabet and its color
-   static Dictionary<char, ConsoleColor> sAllLetters = [];
+   Dictionary<char, ConsoleColor> sAllLetters = [];
    // Denotes the index of each input letter
-   static int sRow = 0, sCol = 0;
+   int sCol = 0, sRow = 0;
    // Stores all five letter words
-   static string[] sAllWords = File.ReadAllLines ("dict-5.txt");
+   string[] sAllWords = File.ReadAllLines ("dict-5.txt");
    #endregion
 }
 #endregion
